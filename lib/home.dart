@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:appAgenda/agenda.dart';
 import 'package:appAgenda/utils/common.dart';
@@ -18,7 +17,76 @@ class HomeApp extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<HomeApp> {
-  Future<void> alterarCheckList(int numLinha, bool value) {
+  DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+
+  void desfazCheckList(int linha, var semana, String check, DateTime data2) {
+    /*---------------------------------------------------------------------- \
+    |   Este metodo desfaz checkliste apos o dia da semana selecionado       |
+    \ ----------------------------------------------------------------------*/
+
+    // ---------- desfaz checkliste apos o dia da semana selecionado ----------
+    if (check != "") {
+      for (int b = 0; b < 7; b++) {
+        if (semana[b] == true) {
+          int diaObj = b; // primeiro dia d lista
+          int diaAtu = DateTime.now().weekday; // dia da semana atual
+          int diaCheck =
+              DateTime.parse(check).weekday; // dia q foi dado o check
+
+          if (diaAtu > diaObj && (diaObj >= diaCheck || diaAtu < diaCheck)) {
+            alterarCheckList(linha, "");
+          }
+        }
+      }
+    }
+
+    removerInfoVencido(linha, data2, check, semana);
+  }
+
+  void removerInfoVencido(int linha, DateTime data2, String check, var semana) {
+    /*---------------------------------------------------------------------- \
+    |   Este metodo remove as informações dos objetivos que ja passaram da   |
+    |   data de termino.                                                     |
+    \ ----------------------------------------------------------------------*/
+
+    // --------------- removendo objetivos ultrapassados ----------------
+
+    // verifica se a data do objetivo ja vençeu ou se o checkliste foi
+    //  selecionado a pelomenos um dia
+
+    if ((data2.add(const Duration(days: 1))).isAfter(DateTime.now()) == false ||
+        data2.add(const Duration(days: 1)) == DateTime.now() ||
+        ((check == "" ? true : dateFormat.parse(check) != DateTime.now()) &&
+            check != "" &&
+            semana.indexOf(true) == -1 &&
+            ((check == ""
+                ? true
+                : dateFormat.parse(check).add(const Duration(days: 1)) ==
+                            DateTime.now() ||
+                        check == ""
+                    ? true
+                    : dateFormat
+                        .parse(check)
+                        .add(const Duration(days: 1))
+                        .isBefore(DateTime.now()))))) {
+      // --------------- remove ---------------------
+
+      int numero = 0;
+      Firestore.instance
+          .collection('infoAgenda')
+          .getDocuments()
+          .then((snapshot) {
+        for (DocumentSnapshot ds in snapshot.documents) {
+          if (numero == linha) {
+            ds.reference.delete();
+          }
+          numero++;
+        }
+      });
+    }
+  }
+
+  void alterarCheckList(int numLinha, String value) {
     int numero = 0;
     Firestore.instance.collection('infoAgenda').getDocuments().then((snapshot) {
       for (DocumentSnapshot ds in snapshot.documents) {
@@ -71,7 +139,17 @@ class _MyHomePageState extends State<HomeApp> {
             itemBuilder: (BuildContext context, int i) {
               Map<String, dynamic> data = snapshot.data.documents[i].data;
               DateTime _timestamp = data['dataHora'].toDate();
-              bool _check = data['checkList'];
+              String _check = data['checkList'];
+              List<bool> _semana = [
+                data['semana']['dom'],
+                data['semana']['seg'],
+                data['semana']['ter'],
+                data['semana']['qua'],
+                data['semana']['qui'],
+                data['semana']['sex'],
+                data['semana']['sab']
+              ];
+              desfazCheckList(i, _semana, _check, _timestamp);
 
               return Container(
                 color: AppConsts.corContainerObjetivo,
@@ -81,10 +159,11 @@ class _MyHomePageState extends State<HomeApp> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: <Widget>[
                     Checkbox(
-                      value: _check,
+                      value: _check == "" ? false : true,
                       onChanged: (bool value) {
-                        _check = value;
-                        alterarCheckList(i, value);
+                        _check =
+                            value == false ? "" : DateTime.now().toString();
+                        alterarCheckList(i, _check);
                       },
                     ),
                     new ConstrainedBox(
@@ -99,14 +178,14 @@ class _MyHomePageState extends State<HomeApp> {
                                 style: TextStyle(
                                     fontSize: 20,
                                     color: AppConsts.corLetraBotaoObjetivo(
-                                        _check,
+                                        _check == "" ? false : true,
                                         getCustomFormattedDateTime(
                                             _timestamp.toString(), 'dd/MM/yy'),
                                         getCustomFormattedDateTime(
                                             _timestamp.toString(), 'kk:mm')),
                                     decoration:
                                         AppConsts.riscarLetraBotaoObjetivo(
-                                            _check),
+                                            _check == "" ? false : true),
                                     decorationThickness: 2),
                               ),
                               Text(
@@ -150,7 +229,7 @@ class _MyHomePageState extends State<HomeApp> {
                                   style: TextStyle(
                                       fontSize: 14,
                                       color: AppConsts.corLetraBotaoObjetivo(
-                                          _check,
+                                          _check == "" ? false : true,
                                           getCustomFormattedDateTime(
                                               _timestamp.toString(),
                                               'dd/MM/yy'),
@@ -161,7 +240,7 @@ class _MyHomePageState extends State<HomeApp> {
                           style: ButtonStyle(
                               backgroundColor: MaterialStateProperty.all<Color>(
                                   AppConsts.corFundoBotaoObjetivo(
-                                      _check,
+                                      _check == "" ? false : true,
                                       getCustomFormattedDateTime(
                                           _timestamp.toString(), 'dd/MM/yy'),
                                       getCustomFormattedDateTime(
@@ -171,18 +250,114 @@ class _MyHomePageState extends State<HomeApp> {
                               context,
                               MaterialPageRoute(
                                   builder: (context) => Agenda(
-                                          _check,
                                           data['objetivo'].toString(),
                                           _timestamp,
-                                          i, [
-                                        data['semana']['dom'],
-                                        data['semana']['seg'],
-                                        data['semana']['ter'],
-                                        data['semana']['qua'],
-                                        data['semana']['qui'],
-                                        data['semana']['sex'],
-                                        data['semana']['sab']
-                                      ])),
+                                          TimeOfDay.fromDateTime(
+                                              data['dataHora'].toDate()),
+                                          i,
+                                          _semana,
+                                          [
+                                            ((DateTime.fromMicrosecondsSinceEpoch(
+                                                        (data['horas']['h1'])
+                                                            .microsecondsSinceEpoch))
+                                                    .toString())
+                                                .substring(11, 16),
+                                            ((DateTime.fromMicrosecondsSinceEpoch(
+                                                        (data['horas']['h2'])
+                                                            .microsecondsSinceEpoch))
+                                                    .toString())
+                                                .substring(11, 16),
+                                            ((DateTime.fromMicrosecondsSinceEpoch(
+                                                        (data['horas']['h3'])
+                                                            .microsecondsSinceEpoch))
+                                                    .toString())
+                                                .substring(11, 16),
+                                            ((DateTime.fromMicrosecondsSinceEpoch(
+                                                        (data['horas']['h4'])
+                                                            .microsecondsSinceEpoch))
+                                                    .toString())
+                                                .substring(11, 16),
+                                          ],
+                                          [
+                                            (((DateTime.fromMicrosecondsSinceEpoch(
+                                                                    (data['horas']
+                                                                            [
+                                                                            'h1'])
+                                                                        .microsecondsSinceEpoch))
+                                                                .toString())
+                                                            .substring(
+                                                                11, 16) ==
+                                                        "00:00" &&
+                                                    ((DateTime.fromMicrosecondsSinceEpoch(
+                                                                    (data['horas']
+                                                                            [
+                                                                            'h2'])
+                                                                        .microsecondsSinceEpoch))
+                                                                .toString())
+                                                            .substring(
+                                                                11, 16) ==
+                                                        "00:00"
+                                                ? false
+                                                : true),
+                                            (((DateTime.fromMicrosecondsSinceEpoch(
+                                                                    (data['horas']
+                                                                            [
+                                                                            'h3'])
+                                                                        .microsecondsSinceEpoch))
+                                                                .toString())
+                                                            .substring(
+                                                                11, 16) ==
+                                                        "00:00" &&
+                                                    ((DateTime.fromMicrosecondsSinceEpoch(
+                                                                    (data['horas']
+                                                                            [
+                                                                            'h4'])
+                                                                        .microsecondsSinceEpoch))
+                                                                .toString())
+                                                            .substring(
+                                                                11, 16) ==
+                                                        "00:00"
+                                                ? false
+                                                : true),
+                                          ],
+                                          [
+                                            (((DateTime.fromMicrosecondsSinceEpoch(
+                                                                (data['horas']
+                                                                        ['h1'])
+                                                                    .microsecondsSinceEpoch))
+                                                            .toString())
+                                                        .substring(11, 16) ==
+                                                    "00:00"
+                                                ? false
+                                                : true),
+                                            (((DateTime.fromMicrosecondsSinceEpoch(
+                                                                (data['horas']
+                                                                        ['h2'])
+                                                                    .microsecondsSinceEpoch))
+                                                            .toString())
+                                                        .substring(11, 16) ==
+                                                    "00:00"
+                                                ? false
+                                                : true),
+                                            (((DateTime.fromMicrosecondsSinceEpoch(
+                                                                (data['horas']
+                                                                        ['h3'])
+                                                                    .microsecondsSinceEpoch))
+                                                            .toString())
+                                                        .substring(11, 16) ==
+                                                    "00:00"
+                                                ? false
+                                                : true),
+                                            (((DateTime.fromMicrosecondsSinceEpoch(
+                                                                (data['horas']
+                                                                        ['h4'])
+                                                                    .microsecondsSinceEpoch))
+                                                            .toString())
+                                                        .substring(11, 16) ==
+                                                    "00:00"
+                                                ? false
+                                                : true),
+                                          ])),
                             );
                           },
                         ),
@@ -201,15 +376,15 @@ class _MyHomePageState extends State<HomeApp> {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => Agenda(false, "", DateTime.now(), -1, [
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false
-                    ] /*, [false, false], [false, false, false, false], ["00:00", "00:00", "00:00", "00:00"]*/)),
+                builder: (context) => Agenda(
+                    "",
+                    DateTime.now(),
+                    TimeOfDay.fromDateTime(DateTime.now()),
+                    -1,
+                    [false, false, false, false, false, false, false],
+                    ["00:00", "00:00", "00:00", "00:00"],
+                    [false, false],
+                    [false, false, false, false])),
           );
         },
         tooltip: 'Adicionar Agenda',

@@ -8,37 +8,36 @@ import 'package:intl/intl.dart';
 import 'package:appAgenda/home.dart';
 
 class Agenda extends StatefulWidget {
-  // Agenda({Key key, this.title}) : super(key: key);
-  //final String title;
-
   final String objetivo;
   final DateTime dataHora;
-  final bool checkList;
+  final TimeOfDay hora;
   final int numLinha;
   final List<bool> semana;
-  //var onOffPai; // on off pai da notificação e alarme
-  //var onOffFilho; // on off filhos da notificação e alarme
-  //var listaDeHora;
+  final List<String> horas;
+  final List<bool> onOffPai;
+  final List<bool> onOffFilho;
 
   Agenda(
-    this.checkList,
     this.objetivo,
     this.dataHora,
+    this.hora,
     this.numLinha,
     this.semana,
-    /*this.onOffPai,
-    this.onOffFilho, this.listaDeHora*/
+    this.horas,
+    this.onOffPai,
+    this.onOffFilho,
   );
 
   @override
   _MyHomePageState2 createState() => _MyHomePageState2(
-        checkList,
         objetivo,
         dataHora,
+        hora,
         numLinha,
         semana,
-        /*onOffPai,
-    onOffFilho, listaDeHora*/
+        horas,
+        onOffPai,
+        onOffFilho,
       );
 }
 
@@ -46,23 +45,26 @@ class _MyHomePageState2 extends State<Agenda> {
   String objetivo;
   DateTime dataHora;
   TimeOfDay hora;
-  bool checkList;
   int numLinha;
   int selecaoBarraNavegacao = 1;
   List<bool> semana;
-  /*var onOffPai; // on off pai da notificação e alarme
-  var onOffFilho; // on off filhos da notificação e alarme
-  var listaDeHora; */ // as horas dos filhos
+  List<bool> onOffPai; // on off pai da notificação e alarme
+  List<bool> onOffFilho; // on off filhos da notificação e alarme
+  List<String> horas; // as horas dos filhos
+  TimeOfDay horasSelecionadas = TimeOfDay.now();
+  DateTime dataHoras;
+  DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   // horario da notificação e alarme q vai aparecer na tela (usa essa string pra ver q a hora mudou da anterior, alem de conseguir começar a hora com 00:00)
 
   _MyHomePageState2(
-    this.checkList,
     this.objetivo,
     this.dataHora,
+    this.hora,
     this.numLinha,
     this.semana,
-    /*this.onOffPai,
-    this.onOffFilho, this.listaDeHora*/
+    this.horas,
+    this.onOffPai,
+    this.onOffFilho,
   );
 
   @override
@@ -83,7 +85,7 @@ class _MyHomePageState2 extends State<Agenda> {
 
     void criar() {
       Firestore.instance.collection('infoAgenda').add({
-        'checkList': false,
+        'checkList': "",
         'objetivo': objetivo,
         'dataHora': dataHora,
         'semana': {
@@ -94,6 +96,12 @@ class _MyHomePageState2 extends State<Agenda> {
           'qui': semana[4],
           'sex': semana[5],
           'sab': semana[6],
+        },
+        'horas': {
+          'h1': dateFormat.parse("2021-01-01 " + horas[0] + ":00"),
+          'h2': dateFormat.parse("2021-01-01 " + horas[1] + ":00"),
+          'h3': dateFormat.parse("2021-01-01 " + horas[2] + ":00"),
+          'h4': dateFormat.parse("2021-01-01 " + horas[3] + ":00"),
         }
       });
     }
@@ -117,6 +125,12 @@ class _MyHomePageState2 extends State<Agenda> {
                 'qui': semana[4],
                 'sex': semana[5],
                 'sab': semana[6],
+              },
+              'horas': {
+                'h1': dateFormat.parse("2021-01-01 " + horas[0] + ":00"),
+                'h2': dateFormat.parse("2021-01-01 " + horas[1] + ":00"),
+                'h3': dateFormat.parse("2021-01-01 " + horas[2] + ":00"),
+                'h4': dateFormat.parse("2021-01-01 " + horas[3] + ":00"),
               }
             });
           }
@@ -164,7 +178,7 @@ class _MyHomePageState2 extends State<Agenda> {
       );
     }
 
-    /*Switch mudaChaveFilha(int numOn, int pai) {
+    Switch mudaChaveFilha(int numOn, int pai) {
       /*---------------------------------------------------------------------- \
       |   muda o valor dos Switch filho e coloca a hora 00:00                  |
       \ ----------------------------------------------------------------------*/
@@ -175,10 +189,10 @@ class _MyHomePageState2 extends State<Agenda> {
           setState(() {
             if (onOffPai[pai] == true) {
               onOffFilho[numOn] = value;
-              listaDeHorasIniciais[numOn] = "00:00";
+              horas[numOn] = "00:00";
             } else {
               onOffFilho[numOn] = false;
-              listaDeHorasIniciais[numOn] = "00:00";
+              horas[numOn] = "00:00";
             }
           });
         },
@@ -208,17 +222,17 @@ class _MyHomePageState2 extends State<Agenda> {
                   onOffPai[number] = value;
                   if (onOffPai[number] == false && number == 0) {
                     onOffFilho[0] = false;
-                    listaDeHorasIniciais[0] = "00:00";
+                    horas[0] = "00:00";
                     mudaChaveFilha(0, number);
                     onOffFilho[1] = false;
-                    listaDeHorasIniciais[1] = "00:00";
+                    horas[1] = "00:00";
                     mudaChaveFilha(1, number);
                   } else if (onOffPai[number] == false && number == 1) {
                     onOffFilho[2] = false;
-                    listaDeHorasIniciais[2] = "00:00";
+                    horas[2] = "00:00";
                     mudaChaveFilha(2, number);
                     onOffFilho[3] = false;
-                    listaDeHorasIniciais[3] = "00:00";
+                    horas[3] = "00:00";
                     mudaChaveFilha(3, number);
                   }
                 });
@@ -227,6 +241,44 @@ class _MyHomePageState2 extends State<Agenda> {
           ],
         ),
       );
+    }
+
+    DateTime formataTimeOfDay(TimeOfDay tod) {
+      /*---------------------------------------------------------------------- \
+      |   Converte TimeOfDay em DateTime                                       |
+      \ ----------------------------------------------------------------------*/
+
+      final now = dataHora;
+      DateTime dt =
+          DateTime(now.year, now.month, now.day, tod.hour, tod.minute);
+      return dt;
+    }
+
+    void selecionaListaDeHoras(
+        BuildContext context, int number, int pai) async {
+      /*---------------------------------------------------------------------- \
+      |   Seleciona as horas da notificação e alarme                           |
+      \ ----------------------------------------------------------------------*/
+
+      if (onOffPai[pai] == true && onOffFilho[number] == true) {
+        TimeOfDay picked = await showTimePicker(
+          initialTime: TimeOfDay.now(),
+          context: context,
+        );
+
+        TimeOfDay selectedTimeListTemporario = TimeOfDay.fromDateTime(
+            DateTime.parse("2021-01-01 " +
+                horas[number].substring(0, 2) +
+                ":" +
+                horas[number].substring(3, 5) +
+                ":00Z"));
+        if (picked != null && picked != selectedTimeListTemporario)
+          setState(() {
+            horasSelecionadas = picked;
+            horas[number] = (horasSelecionadas.toString()).substring(10, 15);
+            horasSelecionadas = TimeOfDay(hour: 0, minute: 0);
+          });
+      }
     }
 
     Container criaOnOffFilho(String titulo, int numero, int pai) {
@@ -245,21 +297,20 @@ class _MyHomePageState2 extends State<Agenda> {
               children: <Widget>[
                 Text(
                   '$titulo',
-                  style: AppConsts.estiloTextoAlarmeNotifPai(
-                      false /*onOffPai[pai]*/),
+                  style: AppConsts.estiloTextoAlarmeNotifPai(onOffPai[pai]),
                 ),
                 Switch(
-                  value: false,
+                  value: onOffFilho[numero],
                   onChanged: (bool value) {
-                    /*setState(() {
+                    setState(() {
                       if (onOffPai[pai] == true) {
-                        onOffFilho[numOn] = value;
-                        listaDeHorasIniciais[numOn] = "00:00";
+                        onOffFilho[numero] = value;
+                        horas[numero] = "00:00";
                       } else {
-                        onOffFilho[numOn] = false;
-                        listaDeHorasIniciais[numOn] = "00:00";
+                        onOffFilho[numero] = false;
+                        horas[numero] = "00:00";
                       }
-                    });*/
+                    });
                   },
                 ),
               ],
@@ -269,29 +320,17 @@ class _MyHomePageState2 extends State<Agenda> {
               padding: EdgeInsets.only(left: setWidth(20)),
               alignment: Alignment.centerLeft,
               child: FloatingActionButton.extended(
-                label: Text("00:00" /*listaDeHorasIniciais[numHora]*/,
-                    style: AppConsts.estiloTextoHorasAlarmeNotif(
-                        false /*onOffFilho[numHora]*/)),
-                elevation: AppConsts.dateAndHourElevation,
-                backgroundColor: AppConsts.corFundoDataHora,
-                heroTag: "btnHoras$numero",
-                /*onPressed: () => selecionaListaDeHoras(context, numHora, pai)*/
-              ),
+                  label: Text(horas[numero],
+                      style: AppConsts.estiloTextoHorasAlarmeNotif(
+                          onOffFilho[numero])),
+                  elevation: AppConsts.dateAndHourElevation,
+                  backgroundColor: AppConsts.corFundoDataHora,
+                  heroTag: "btnHoras$numero",
+                  onPressed: () => selecionaListaDeHoras(context, numero, pai)),
             ),
           ],
         ),
       );
-    }*/
-
-    DateTime formataTimeOfDay(TimeOfDay tod) {
-      /*---------------------------------------------------------------------- \
-      |   Converte TimeOfDay em DateTime                                       |
-      \ ----------------------------------------------------------------------*/
-
-      final now = dataHora;
-      DateTime dt =
-          DateTime(now.year, now.month, now.day, tod.hour, tod.minute);
-      return dt;
     }
 
     void selecionaDate(BuildContext context) async {
@@ -311,10 +350,14 @@ class _MyHomePageState2 extends State<Agenda> {
           );
         },
       );
+      print(picked);
+      print(dataHora);
       if (picked != null && picked != dataHora)
         setState(() {
           dataHora = picked;
+          print(hora);
           dataHora = formataTimeOfDay(hora);
+          print(dataHora);
         });
     }
 
@@ -468,12 +511,12 @@ class _MyHomePageState2 extends State<Agenda> {
                   criaDiaSemana("S", 6),
                 ],
               ),
-              /*criaOnOffPai('Notificação', 0),
+              criaOnOffPai('Notificação', 0),
               criaOnOffFilho('Notificar quanto tempo antes', 0, 0),
               criaOnOffFilho('Intervalo de notificação frequente', 1, 0),
               criaOnOffPai('Alarme', 1),
               criaOnOffFilho('Alarmar quanto tempo antes', 2, 1),
-              criaOnOffFilho('Intervalo de alarme frequente', 3, 1),*/
+              criaOnOffFilho('Intervalo de alarme frequente', 3, 1),
             ],
           ),
         ),
