@@ -3,13 +3,13 @@
 </br>
 
 <h3>English</h3>
-<p>Agenda is a simple app to manage everyday activities. It was developed by <a href="https://github.com/GrendaCarla">Grenda Silva</a> and <a href="https://github.com/Leckaa">Quézia Godoy</a> under the supervision of Professor <a href="https://github.com/matiasfilho81">Matias Filho</a> in Dart language during the development class for mobile systems at the ADS graduation course at <a href="https://www.usf.edu.br/english/">University São Francisco</a>.</p>
+<p>Agenda is a simple app to help the user to manage their daily activities. It was developed by <a href="https://github.com/GrendaCarla">Grenda Silva</a> and <a href="https://github.com/Leckaa">Quézia Godoy</a> under the supervision of Professor <a href="https://github.com/matiasfilho81">Matias Filho</a> in Dart language during the development class for mobile systems at the ADS graduation course at <a href="https://www.usf.edu.br/english/">University São Francisco</a>.</p>
 
 
 </br>
 
 <h3>Português</h3>
-<p>Agenda é um aplicativo simples para gerenciar as atividades do cotidiano. Ela foi desenvolvida por <a href="https://github.com/GrendaCarla">Grenda Silva</a> e <a href="https://github.com/Leckaa">Quézia Godoy</a> com a supervisão do professor <a href="https://github.com/matiasfilho81">Matias Filho</a> em linguagem Dart durante a aula de desenvolvimento para sistemas móveis da graduação de ADS na <a href="https://www.usf.edu.br/">Universidade São Francisco</a>.</p>
+<p>Agenda é um aplicativo simples para ajudar o usuário a gerenciar suas atividades do cotidiano. Ela foi desenvolvida por <a href="https://github.com/GrendaCarla">Grenda Silva</a> e <a href="https://github.com/Leckaa">Quézia Godoy</a> com a supervisão do professor <a href="https://github.com/matiasfilho81">Matias Filho</a> em linguagem Dart durante a aula de desenvolvimento para sistemas móveis da graduação de ADS na <a href="https://www.usf.edu.br/">Universidade São Francisco</a>.</p>
 </br>
 
 * Dart
