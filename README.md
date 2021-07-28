@@ -15,6 +15,7 @@
 * Dart
 * Flutter
 * VS Code
+* Firebase
 
 </br></br>
 <h3>**Na concepção inicial o aplicativo possuia funcionalidades de notificação e alarme, porem não foi possível a criação delas até tempo do prazo de entrega. Contudo elas seram implementadas posteriormente.**</h3>
